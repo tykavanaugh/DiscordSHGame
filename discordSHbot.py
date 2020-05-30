@@ -7,8 +7,8 @@ from itertools import cycle
 import random
 
 client = commands.Bot(command_prefix="!") #prefix may be changed to whatever you want so long as the command names are
-GUILD = 'Secret Hitler' #server name
-TOKEN = 'NzA1NDc1MDY4Nzg4MDgwNzQy.XqsO9g.QSFeLb5DXc2CMtjsNQgdkateZYk' #bot token
+GUILD =  #server name
+TOKEN = #bot token
 PASS = 'toor'
 
 @client.event #connect
