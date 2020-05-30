@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat May 30 08:48:24 2020
-
-@author: BlackBox
-"""
-
 import discord
 from discord.ext import commands,tasks
 import os
@@ -15,8 +7,8 @@ from itertools import cycle
 import random
 
 client = commands.Bot(command_prefix="!") #prefix may be changed to whatever you want so long as the command names are
-GUILD = 'exampleGuild' #server name
-TOKEN = 'exampleToken' #bot token
+GUILD = 'Secret Hitler' #server name
+TOKEN = 'NzA1NDc1MDY4Nzg4MDgwNzQy.XqsO9g.QSFeLb5DXc2CMtjsNQgdkateZYk' #bot token
 PASS = 'toor'
 
 @client.event #connect
@@ -66,10 +58,13 @@ async def ready(ctx,*,username):
         if ctx.author == player.discordID:
             await ctx.send('Already registered')
             return
+        if username == player.handle:
+            await ctx.send('Identical handle already in use')
+            return
     playerCount = len(playerList)
     await ctx.send('{} is ready'.format(username))
     print(ctx.author)
-    newPlayer = Player(playerCount,username,ctx.author,'unassigned',False,False,False,False)
+    newPlayer = Player(playerCount,username,ctx.author,'unassigned',False,False,False,True)
     playerList['player{}'.format(playerCount)] = newPlayer
 
 @client.command()
@@ -97,47 +92,56 @@ async def assignRoles(ctx):
     index = []
     for i in range(0,len(playerList)):
         index.append(i)
-    index = random.shuffle(index)
+    random.shuffle(index)
+    loop = 0
+    for n,player in playerList.items():
+        playerList[n].order = (index[loop])
+        loop += 1
     for n,player in playerList.items():
         #index out of range here
-            if player.order == index[0]:
+            if player.order == 0:
                 player.faction = 'fascist'
                 player.isHitler = True
-            if player.order == index[1]:
+            if player.order == 1:
                 player.faction = 'fascist'
-            if player.order == index[2]:
+            if player.order == 2:
                 player.faction = 'liberal'
-            if player.order == index[3]:
+            if player.order == 3:
                 player.faction = 'liberal'
-            if player.order == index[4]:
+            if player.order == 4:
                 player.faction = 'liberal'
-            if player.order == index[5]:
+            if player.order == 5:
                 player.faction = 'liberal'
-            if player.order == index[6]:
+            if player.order == 6:
                 player.faction = 'fascist'
-            if player.order == index[7]:
+            if player.order == 7:
                 player.faction = 'liberal'
-            if player.order == index[8]:
+            if player.order == 8:
                 player.faction = 'fascist'
-            if player.order == index[9]:
+            if player.order == 9:
                 player.faction = 'liberal'
-
+                
 @client.command()
-@commands.has_permissions(administrator=True)
 async def pmRoles(ctx):
-    for n,player in playerList.items():
-        if player.faction == 'liberal':
-            await player.discordID.create_dm()
-            await player.discordID.dm_channel.send('You are a liberal. You must find Hitler and prevent him from taking power')
-        if player.faction == 'fascist':
-            await player.discordID.create_dm()
-            await player.discordID.dm_channel.send('You are a fascist. ')
-            if player.isHitler == True:
-                hitlerPlayer = player
-    for n,player in playerList.items():
-        if player.faction == 'fascist':
-            await player.discordID.create_dm()
-            await player.discordID.dm_channel.send('You must ensure {} rises to power.'.format(hitlerPlayer.handle))
+        fashyPlayers = []
+        for n,player in playerList.items():
+            if player.faction == 'liberal':
+                await player.discordID.create_dm()
+                await player.discordID.dm_channel.send('You are a liberal. You must find Hitler and prevent him from taking power')
+            if player.faction == 'fascist':
+                await player.discordID.create_dm()
+                await player.discordID.dm_channel.send('You are a fascist. ')
+                fashyPlayers.append(player.handle)
+                if player.isHitler == True:
+                        hitlerPlayer = player.handle
+        for n,player in playerList.items():
+            if player.faction == 'fascist':
+                await player.discordID.create_dm()
+                await player.discordID.dm_channel.send('You must ensure {} rises to power.'.format(hitlerPlayer))
+                await player.discordID.dm_channel.send('Your allies are:')
+                for fash in fashyPlayers:
+                    await player.discordID.create_dm()
+                    await player.discordID.dm_channel.send('{}'.format(fash))
     
 @client.command() 
 @commands.has_permissions(administrator=True)
@@ -171,6 +175,11 @@ async def startGame(ctx):
 @client.command()
 async def nominate(ctx,*,nominee):
     for n,player in playerList.items():
+        if player.discordID == ctx.author:
+            if player.handle == nominee:
+                await ctx.send('You cannot nominate yourself!')
+                return
+    for n,player in playerList.items():
         if ctx.author == player.discordID:
             if player.isPresident == False:
                 await ctx.send('{} is not president!'.format(player.handle))
@@ -179,6 +188,7 @@ async def nominate(ctx,*,nominee):
         if nominee == player.handle:
             if player.isAlive == False:
                 await ctx.send('{} is dead!'.format(nominee))
+                return
             if nominee in notEligible:
                 await ctx.send('{} was in the previous goverment. They are not eligible!'.format(nominee))
                 return
